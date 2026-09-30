@@ -39,16 +39,17 @@ const QUIZ_QUESTIONS = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home'); // home, quiz, spin, redeem, invite, admin
+  // 5 Bottom Navigation Options: Home, Quiz, Earn, Wallet, Profile
+  const [activeTab, setActiveTab] = useState('home');
   const [points, setPoints] = useState(() => {
     const saved = localStorage.getItem('qr_points');
-    return saved !== null ? parseInt(saved, 10) : 100; // starts with welcome gift
+    return saved !== null ? parseInt(saved, 10) : 100;
   });
 
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [quizFeedback, setQuizFeedback] = useState(null);
-  const [quizzesAnswered, setQuizzesAnswered] = useState(0);
+  const [quizzesAnswered, setQuizzesAnswered] = useState(3);
 
   // Spin Wheel State
   const [isSpinning, setIsSpinning] = useState(false);
@@ -64,6 +65,7 @@ export default function App() {
 
   // Referral State
   const [copiedCode, setCopiedCode] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('qr_points', points.toString());
@@ -142,12 +144,19 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0d1117', color: '#f0f6fc', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#0a0d14',
+      color: '#f0f6fc',
+      display: 'flex',
+      flexDirection: 'column',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }}>
+      {/* Top Bar matching Android GamingTopBar */}
       <header style={{
-        backgroundColor: '#161b22',
-        borderBottom: '1px solid #30363d',
-        padding: '14px 20px',
+        backgroundColor: '#121721',
+        borderBottom: '1px solid #232c3d',
+        padding: '12px 18px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -157,232 +166,249 @@ export default function App() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => setActiveTab('home')}>
           <div style={{
-            width: '38px',
-            height: '38px',
+            width: '36px',
+            height: '36px',
             borderRadius: '10px',
-            background: 'linear-gradient(135deg, #FFD700, #FFA000)',
+            background: 'linear-gradient(135deg, #FFD700, #FF9100)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '20px'
+            fontSize: '18px',
+            boxShadow: '0 2px 8px rgba(255, 215, 0, 0.3)'
           }}>💎</div>
           <div>
-            <div style={{ fontWeight: '800', fontSize: '18px', color: '#FFD700', letterSpacing: '0.5px' }}>Quiz Rewards</div>
-            <div style={{ fontSize: '11px', color: '#8b949e' }}>Play Quizzes • Earn Diamonds</div>
+            <div style={{ fontWeight: '900', fontSize: '17px', color: '#FFD700', letterSpacing: '0.4px' }}>Quiz Rewards</div>
+            <div style={{ fontSize: '10px', color: '#8b949e' }}>Play Quizzes • Earn Diamonds</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #1c2128, #2d333b)',
-            border: '1px solid #FFD700',
-            borderRadius: '20px',
-            padding: '6px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{ fontSize: '16px' }}>💰</span>
-            <span style={{ fontWeight: '800', color: '#FFE082', fontSize: '15px' }}>{points.toLocaleString()}</span>
-            <span style={{ fontSize: '11px', color: '#8b949e', textTransform: 'uppercase' }}>Pts</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            onClick={() => setActiveTab('wallet')}
+            style={{
+              background: 'linear-gradient(135deg, #18202c, #242f40)',
+              border: '1px solid #FFD700',
+              borderRadius: '20px',
+              padding: '5px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            <span style={{ fontSize: '14px' }}>🪙</span>
+            <span style={{ fontWeight: '800', color: '#FFE082', fontSize: '14px' }}>{points.toLocaleString()}</span>
+            <span style={{ fontSize: '10px', color: '#8b949e', textTransform: 'uppercase' }}>Pts</span>
           </div>
 
-          <button
-            onClick={() => setActiveTab('admin')}
+          <span
+            onClick={() => setShowAdminModal(true)}
             style={{
-              backgroundColor: '#21262d',
-              border: '1px solid #f85149',
-              color: '#ff7b72',
-              borderRadius: '8px',
-              padding: '6px 12px',
-              fontSize: '12px',
-              fontWeight: '600',
+              backgroundColor: 'rgba(255, 87, 34, 0.15)',
+              border: '1px solid #ff5722',
+              color: '#ff7043',
+              borderRadius: '6px',
+              padding: '4px 8px',
+              fontSize: '11px',
+              fontWeight: '700',
               cursor: 'pointer'
             }}
           >
             🛡️ Admin
-          </button>
+          </span>
         </div>
       </header>
 
-      {/* Nav Tabs */}
-      <nav style={{
-        backgroundColor: '#161b22',
-        borderBottom: '1px solid #21262d',
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '6px',
-        padding: '8px 12px',
-        overflowX: 'auto'
+      {/* Main Content Body */}
+      <main style={{
+        maxWidth: '680px',
+        width: '100%',
+        margin: '0 auto',
+        padding: '16px 16px 90px 16px',
+        flex: 1,
+        boxSizing: 'border-box'
       }}>
-        {[
-          { key: 'home', label: '🏠 Home' },
-          { key: 'quiz', label: '❓ Play Quiz' },
-          { key: 'spin', label: '🎡 Spin & Earn' },
-          { key: 'redeem', label: '💎 Redeem Diamonds' },
-          { key: 'invite', label: '🎁 Invite & Earn' },
-          { key: 'admin', label: '🛡️ Admin Portal' }
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              border: 'none',
-              backgroundColor: activeTab === tab.key ? '#FFD700' : 'transparent',
-              color: activeTab === tab.key ? '#0d1117' : '#8b949e',
-              fontWeight: activeTab === tab.key ? '800' : '500',
-              fontSize: '13px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
 
-      {/* Content Area */}
-      <main style={{ maxWidth: '850px', width: '100%', margin: '0 auto', padding: '24px 16px', flex: 1 }}>
-        
-        {/* TAB: HOME */}
+        {/* 1. HOME TAB */}
         {activeTab === 'home' && (
           <div>
             {/* Hero Card */}
             <div style={{
-              background: 'linear-gradient(135deg, #1c2128 0%, #2d333b 50%, #161b22 100%)',
-              border: '1px solid #FFD700',
+              background: 'linear-gradient(135deg, #1a2230 0%, #263347 100%)',
+              border: '1px solid rgba(255, 215, 0, 0.35)',
               borderRadius: '16px',
-              padding: '24px',
-              marginBottom: '24px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-              position: 'relative',
-              overflow: 'hidden'
+              padding: '20px',
+              marginBottom: '16px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
             }}>
-              <div style={{ position: 'relative', zIndex: 2 }}>
-                <span style={{ backgroundColor: '#FFD700', color: '#0d1117', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '12px', textTransform: 'uppercase' }}>
-                  Official Web Portal
-                </span>
-                <h1 style={{ fontSize: '26px', fontWeight: '800', margin: '12px 0 6px 0', color: '#ffffff' }}>
-                  Play Quizzes. Earn Points. <span style={{ color: '#00E5FF' }}>Redeem Diamonds.</span>
-                </h1>
-                <p style={{ color: '#8b949e', fontSize: '14px', lineHeight: 1.5, margin: '0 0 18px 0', maxWidth: '580px' }}>
-                  Join thousands of players taking Free Fire trivia quizzes, spinning the daily wheel, and redeeming verified diamond voucher codes directly into their gaming accounts.
-                </p>
+              <span style={{
+                backgroundColor: '#FFD700',
+                color: '#0a0d14',
+                fontSize: '10px',
+                fontWeight: '900',
+                padding: '3px 8px',
+                borderRadius: '8px',
+                letterSpacing: '0.5px'
+              }}>
+                OFFICIAL REWARDS PORTAL
+              </span>
+              <h2 style={{ fontSize: '22px', fontWeight: '900', margin: '10px 0 6px 0', color: '#ffffff' }}>
+                Play Quizzes. Earn Points. <span style={{ color: '#00E5FF' }}>Redeem Diamonds.</span>
+              </h2>
+              <p style={{ color: '#94a3b8', fontSize: '13px', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                Answer trivia questions, spin the fortune wheel, and exchange your points for official Free Fire diamond vouchers!
+              </p>
 
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <button
-                    onClick={() => setActiveTab('quiz')}
-                    style={{
-                      background: 'linear-gradient(135deg, #FFD700, #FFA000)',
-                      border: 'none',
-                      color: '#0d1117',
-                      fontWeight: '800',
-                      padding: '10px 20px',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
-                  >
-                    ▶️ Play Quiz (+15 Pts)
-                  </button>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => setActiveTab('quiz')}
+                  style={{
+                    flex: 1,
+                    background: 'linear-gradient(135deg, #FFD700, #FFA000)',
+                    border: 'none',
+                    color: '#0a0d14',
+                    fontWeight: '800',
+                    padding: '12px',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontSize: '13px'
+                  }}
+                >
+                  ▶️ Play Quiz (+15 Pts)
+                </button>
+                <button
+                  onClick={() => setActiveTab('earn')}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#1b2432',
+                    border: '1px solid #00E5FF',
+                    color: '#00E5FF',
+                    fontWeight: '700',
+                    padding: '12px',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontSize: '13px'
+                  }}
+                >
+                  🎡 Spin & Earn
+                </button>
+              </div>
+            </div>
 
-                  <button
-                    onClick={() => setActiveTab('spin')}
-                    style={{
-                      backgroundColor: '#21262d',
-                      border: '1px solid #00E5FF',
-                      color: '#00E5FF',
-                      fontWeight: '700',
-                      padding: '10px 18px',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
-                  >
-                    🎡 Spin Wheel ({freeSpins} left)
-                  </button>
+            {/* Wallet Overview Card */}
+            <div style={{
+              backgroundColor: '#121721',
+              border: '1px solid #232c3d',
+              borderRadius: '14px',
+              padding: '16px',
+              marginBottom: '16px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', letterSpacing: '0.8px' }}>TOTAL WALLET BALANCE</div>
+                  <div style={{ fontSize: '26px', fontWeight: '900', color: '#FFD700', marginTop: '2px' }}>
+                    {points.toLocaleString()} <span style={{ fontSize: '14px', color: '#94a3b8' }}>pts</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveTab('wallet')}
+                  style={{
+                    backgroundColor: '#1b2432',
+                    border: '1px solid #FFD700',
+                    color: '#FFE082',
+                    fontWeight: '700',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  View Wallet ➔
+                </button>
+              </div>
+
+              {/* Conversion bar: 60 Diamonds = 1000 Points */}
+              <div style={{
+                marginTop: '12px',
+                padding: '10px',
+                backgroundColor: '#18202c',
+                borderRadius: '8px',
+                border: '1px solid rgba(0, 229, 255, 0.3)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: '700' }}>
+                  <span style={{ color: '#00E5FF' }}>💎 60 Diamonds = 1,000 Points</span>
+                  <span style={{ color: '#FFE082' }}>Available: {Math.floor(points / 1000) * 60} 💎</span>
+                </div>
+                <div style={{
+                  height: '6px',
+                  backgroundColor: '#0a0d14',
+                  borderRadius: '3px',
+                  marginTop: '8px',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    width: `${((points % 1000) / 1000) * 100}%`,
+                    height: '100%',
+                    backgroundColor: '#00E5FF',
+                    borderRadius: '3px'
+                  }} />
+                </div>
+                <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '6px' }}>
+                  Progress to next 60 💎: {points % 1000} / 1,000 Points ({Math.floor(((points % 1000) / 1000) * 100)}%)
                 </div>
               </div>
             </div>
 
-            {/* Quick Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-              <div style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '14px', padding: '18px' }}>
-                <div style={{ fontSize: '12px', color: '#8b949e', textTransform: 'uppercase', fontWeight: '700' }}>Balance</div>
-                <div style={{ fontSize: '24px', fontWeight: '800', color: '#FFD700', marginTop: '6px' }}>{points} Pts</div>
-                <div style={{ fontSize: '12px', color: '#3fb950', marginTop: '4px' }}>💎 Worth {(points / 1000 * 60).toFixed(0)} Diamonds</div>
+            {/* Daily Activity Progress */}
+            <div style={{
+              backgroundColor: '#121721',
+              border: '1px solid #232c3d',
+              borderRadius: '14px',
+              padding: '16px',
+              marginBottom: '16px'
+            }}>
+              <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', letterSpacing: '0.8px', marginBottom: '12px' }}>
+                TODAY'S ACTIVITY PROGRESS
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                <span>Quizzes Answered</span>
+                <span style={{ color: '#FFD700', fontWeight: '700' }}>{quizzesAnswered} / 15</span>
+              </div>
+              <div style={{ height: '6px', backgroundColor: '#1b2432', borderRadius: '3px', overflow: 'hidden', marginBottom: '12px' }}>
+                <div style={{ width: `${(quizzesAnswered / 15) * 100}%`, height: '100%', backgroundColor: '#FFD700' }} />
               </div>
 
-              <div style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '14px', padding: '18px' }}>
-                <div style={{ fontSize: '12px', color: '#8b949e', textTransform: 'uppercase', fontWeight: '700' }}>Redemption Window</div>
-                <div style={{ fontSize: '18px', fontWeight: '800', color: isRedemptionWindowOpen ? '#3fb950' : '#ffa657', marginTop: '6px' }}>
-                  {isRedemptionWindowOpen ? "🟢 OPEN NOW (5th-10th)" : "⏳ CLOSED (Opens 5th-10th)"}
-                </div>
-                <div style={{ fontSize: '12px', color: '#8b949e', marginTop: '4px' }}>60 Diamonds = 1,000 Points</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                <span>Free Spins Remaining</span>
+                <span style={{ color: '#00E5FF', fontWeight: '700' }}>{freeSpins} / 3</span>
               </div>
-
-              <div style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '14px', padding: '18px' }}>
-                <div style={{ fontSize: '12px', color: '#8b949e', textTransform: 'uppercase', fontWeight: '700' }}>Welcome Gift</div>
-                <div style={{ fontSize: '20px', fontWeight: '800', color: '#3fb950', marginTop: '6px' }}>+100 Points ✅</div>
-                <div style={{ fontSize: '12px', color: '#8b949e', marginTop: '4px' }}>Credited to verified accounts</div>
-              </div>
-            </div>
-
-            {/* Quick Actions Card */}
-            <div style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '14px', padding: '20px' }}>
-              <h3 style={{ margin: '0 0 14px 0', fontSize: '16px' }}>🚀 How to Earn Free Fire Diamonds</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', backgroundColor: '#0d1117', borderRadius: '10px' }}>
-                  <span style={{ fontSize: '22px' }}>1️⃣</span>
-                  <div>
-                    <div style={{ fontWeight: '700', fontSize: '14px' }}>Answer 15 Daily Trivia Questions</div>
-                    <div style={{ fontSize: '12px', color: '#8b949e' }}>Earn +15 points for every correct answer.</div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', backgroundColor: '#0d1117', borderRadius: '10px' }}>
-                  <span style={{ fontSize: '22px' }}>2️⃣</span>
-                  <div>
-                    <div style={{ fontWeight: '700', fontSize: '14px' }}>Spin the Daily Fortune Wheel</div>
-                    <div style={{ fontSize: '12px', color: '#8b949e' }}>Win up to 100 points per spin with 3 daily free spins.</div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', backgroundColor: '#0d1117', borderRadius: '10px' }}>
-                  <span style={{ fontSize: '22px' }}>3️⃣</span>
-                  <div>
-                    <div style={{ fontWeight: '700', fontSize: '14px' }}>Invite Friends (+100 Pts Each)</div>
-                    <div style={{ fontSize: '12px', color: '#8b949e' }}>Share your code to stack points faster.</div>
-                  </div>
-                </div>
+              <div style={{ height: '6px', backgroundColor: '#1b2432', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ width: `${(freeSpins / 3) * 100}%`, height: '100%', backgroundColor: '#00E5FF' }} />
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB: QUIZ */}
+        {/* 2. QUIZ TAB */}
         {activeTab === 'quiz' && (
-          <div style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '16px', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <span style={{ fontSize: '13px', color: '#8b949e', fontWeight: '600' }}>
+          <div style={{ backgroundColor: '#121721', border: '1px solid #232c3d', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700' }}>
                 Question {currentQIndex + 1} of {QUIZ_QUESTIONS.length}
               </span>
-              <span style={{ backgroundColor: '#21262d', color: '#FFD700', fontSize: '12px', fontWeight: '700', padding: '4px 10px', borderRadius: '12px' }}>
+              <span style={{ backgroundColor: '#1b2432', color: '#FFD700', fontSize: '11px', fontWeight: '800', padding: '3px 8px', borderRadius: '8px' }}>
                 +15 Points
               </span>
             </div>
 
-            <h2 style={{ fontSize: '18px', fontWeight: '700', margin: '0 0 20px 0', lineHeight: 1.4 }}>
+            <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '0 0 16px 0', lineHeight: 1.4 }}>
               {QUIZ_QUESTIONS[currentQIndex].question}
-            </h2>
+            </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
               {QUIZ_QUESTIONS[currentQIndex].options.map((opt, idx) => {
-                let btnBg = '#21262d';
-                let btnBorder = '#30363d';
+                let btnBg = '#18202c';
+                let btnBorder = '#283446';
                 let btnColor = '#f0f6fc';
 
                 if (selectedOption !== null) {
@@ -403,7 +429,7 @@ export default function App() {
                     disabled={selectedOption !== null}
                     onClick={() => handleAnswerSubmit(idx)}
                     style={{
-                      padding: '14px 18px',
+                      padding: '12px 16px',
                       borderRadius: '10px',
                       backgroundColor: btnBg,
                       border: `1px solid ${btnBorder}`,
@@ -414,11 +440,10 @@ export default function App() {
                       cursor: selectedOption === null ? 'pointer' : 'default',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '12px',
-                      transition: 'all 0.15s'
+                      gap: '10px'
                     }}
                   >
-                    <span style={{ opacity: 0.7 }}>{String.fromCharCode(65 + idx)}.</span>
+                    <span style={{ opacity: 0.6 }}>{String.fromCharCode(65 + idx)}.</span>
                     <span>{opt}</span>
                   </button>
                 );
@@ -427,14 +452,14 @@ export default function App() {
 
             {quizFeedback && (
               <div style={{
-                padding: '12px 16px',
-                borderRadius: '10px',
+                padding: '10px 14px',
+                borderRadius: '8px',
                 backgroundColor: quizFeedback.correct ? 'rgba(63, 185, 80, 0.15)' : 'rgba(248, 81, 73, 0.15)',
                 border: `1px solid ${quizFeedback.correct ? '#3fb950' : '#f85149'}`,
                 color: quizFeedback.correct ? '#3fb950' : '#f85149',
                 fontSize: '13px',
-                fontWeight: '600',
-                marginBottom: '16px'
+                fontWeight: '700',
+                marginBottom: '14px'
               }}>
                 {quizFeedback.text}
               </div>
@@ -448,7 +473,7 @@ export default function App() {
                   padding: '12px',
                   borderRadius: '10px',
                   backgroundColor: '#FFD700',
-                  color: '#0d1117',
+                  color: '#0a0d14',
                   fontWeight: '800',
                   fontSize: '14px',
                   border: 'none',
@@ -461,293 +486,453 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB: SPIN */}
-        {activeTab === 'spin' && (
-          <div style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#FFD700', margin: '0 0 6px 0' }}>🎡 Spin & Earn Fortune Wheel</h2>
-            <p style={{ color: '#8b949e', fontSize: '13px', margin: '0 0 20px 0' }}>
-              Spin to earn between 20 to 100 bonus wallet points. Free spins reset daily!
-            </p>
-
-            {/* Wheel Canvas Mockup */}
+        {/* 3. EARN TAB (Spin & Earn + Watch Ads + Tasks) */}
+        {activeTab === 'earn' && (
+          <div>
+            {/* Fortune Spin Wheel Card */}
             <div style={{
-              width: '240px',
-              height: '240px',
-              margin: '0 auto 24px auto',
-              borderRadius: '50%',
-              border: '6px solid #FFD700',
-              background: 'conic-gradient(#FFD700 0% 16%, #00E5FF 16% 33%, #FF5722 33% 50%, #4CAF50 50% 66%, #9C27B0 66% 83%, #FF9800 83% 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              boxShadow: '0 0 30px rgba(255, 215, 0, 0.3)',
-              transform: `rotate(${rotation}deg)`,
-              transition: isSpinning ? 'transform 2.8s cubic-bezier(0.15, 0.9, 0.25, 1)' : 'none'
+              backgroundColor: '#121721',
+              border: '1px solid #232c3d',
+              borderRadius: '16px',
+              padding: '20px',
+              textAlign: 'center',
+              marginBottom: '16px'
             }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '900', color: '#FFD700', margin: '0 0 4px 0' }}>🎡 Spin & Earn Fortune Wheel</h3>
+              <p style={{ color: '#94a3b8', fontSize: '12px', margin: '0 0 16px 0' }}>
+                Win 20 to 100 points per spin! 3 free spins every day.
+              </p>
+
+              {/* Wheel graphic */}
               <div style={{
-                width: '60px',
-                height: '60px',
+                width: '180px',
+                height: '180px',
+                margin: '0 auto 16px auto',
                 borderRadius: '50%',
-                backgroundColor: '#161b22',
-                border: '3px solid #ffffff',
+                border: '5px solid #FFD700',
+                background: 'conic-gradient(#FFD700 0% 16%, #00E5FF 16% 33%, #FF5722 33% 50%, #4CAF50 50% 66%, #9C27B0 66% 83%, #FF9800 83% 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#FFD700',
-                fontWeight: '900',
-                fontSize: '18px'
+                transform: `rotate(${rotation}deg)`,
+                transition: isSpinning ? 'transform 2.8s cubic-bezier(0.15, 0.9, 0.25, 1)' : 'none'
               }}>
-                💎
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '50%',
+                  backgroundColor: '#121721',
+                  border: '2px solid #ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '16px'
+                }}>
+                  🎯
+                </div>
               </div>
+
+              {spinResult && (
+                <div style={{
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(63, 185, 80, 0.2)',
+                  border: '1px solid #3fb950',
+                  color: '#3fb950',
+                  fontWeight: '800',
+                  fontSize: '14px',
+                  marginBottom: '12px'
+                }}>
+                  🎉 +{spinResult} Points Added to Wallet!
+                </div>
+              )}
+
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '14px' }}>
+                Free Spins Left: <strong style={{ color: '#FFD700' }}>{freeSpins}</strong>
+              </div>
+
+              <button
+                onClick={handleSpin}
+                disabled={isSpinning || freeSpins <= 0}
+                style={{
+                  background: freeSpins > 0 ? 'linear-gradient(135deg, #FFD700, #FFA000)' : '#283446',
+                  color: freeSpins > 0 ? '#0a0d14' : '#64748b',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '12px 28px',
+                  fontSize: '14px',
+                  fontWeight: '800',
+                  cursor: freeSpins > 0 && !isSpinning ? 'pointer' : 'not-allowed'
+                }}
+              >
+                {isSpinning ? "Spinning..." : freeSpins > 0 ? "SPIN NOW! 🎯" : "Free Spins Used for Today"}
+              </button>
             </div>
 
-            {spinResult && (
-              <div style={{
-                padding: '12px 20px',
-                borderRadius: '12px',
-                backgroundColor: 'rgba(63, 185, 80, 0.2)',
-                border: '1px solid #3fb950',
-                color: '#3fb950',
-                fontWeight: '800',
-                fontSize: '16px',
-                marginBottom: '16px'
-              }}>
-                🎉 You won +{spinResult} Points!
-              </div>
-            )}
-
-            <div style={{ marginBottom: '16px', fontSize: '13px', color: '#8b949e' }}>
-              Free Spins Left Today: <strong style={{ color: '#FFD700' }}>{freeSpins}</strong>
-            </div>
-
-            <button
-              onClick={handleSpin}
-              disabled={isSpinning || freeSpins <= 0}
-              style={{
-                background: freeSpins > 0 ? 'linear-gradient(135deg, #FFD700, #FFA000)' : '#30363d',
-                color: freeSpins > 0 ? '#0d1117' : '#8b949e',
-                border: 'none',
-                borderRadius: '12px',
-                padding: '14px 32px',
-                fontSize: '16px',
-                fontWeight: '800',
-                cursor: freeSpins > 0 && !isSpinning ? 'pointer' : 'not-allowed'
-              }}
-            >
-              {isSpinning ? "Spinning..." : freeSpins > 0 ? "SPIN NOW! 🎯" : "Daily Free Spins Finished"}
-            </button>
-          </div>
-        )}
-
-        {/* TAB: REDEEM */}
-        {activeTab === 'redeem' && (
-          <div style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '16px', padding: '24px' }}>
+            {/* Watch Ad Bonus Mockup */}
             <div style={{
+              backgroundColor: '#121721',
+              border: '1px solid #232c3d',
+              borderRadius: '14px',
+              padding: '16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              marginBottom: '16px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '24px' }}>📺</span>
+                <div>
+                  <div style={{ fontWeight: '800', fontSize: '14px' }}>Watch Bonus Ad</div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>Get +1 Extra Spin or +10 Points</div>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setPoints((p) => p + 10);
+                  alert("Ad watched! +10 Points awarded.");
+                }}
+                style={{
+                  backgroundColor: '#1b2432',
+                  border: '1px solid #00E5FF',
+                  color: '#00E5FF',
+                  fontWeight: '700',
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Watch (+10 Pts)
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 4. WALLET TAB (Diamonds Redemption + Window Rules + Form) */}
+        {activeTab === 'wallet' && (
+          <div>
+            {/* Window Banner */}
+            <div style={{
               padding: '12px 16px',
               borderRadius: '12px',
               backgroundColor: isRedemptionWindowOpen ? 'rgba(63, 185, 80, 0.15)' : 'rgba(255, 166, 87, 0.15)',
               border: `1px solid ${isRedemptionWindowOpen ? '#3fb950' : '#ffa657'}`,
-              marginBottom: '20px'
+              marginBottom: '16px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
             }}>
               <div>
-                <div style={{ fontWeight: '800', color: isRedemptionWindowOpen ? '#3fb950' : '#ffa657', fontSize: '14px' }}>
-                  {isRedemptionWindowOpen ? "Monthly Window is OPEN (5th–10th)" : "Monthly Window is CLOSED"}
+                <div style={{ fontWeight: '800', color: isRedemptionWindowOpen ? '#3fb950' : '#ffa657', fontSize: '13px' }}>
+                  {isRedemptionWindowOpen ? "🟢 Monthly Redemption Window: OPEN" : "⏳ Monthly Redemption Window: CLOSED"}
                 </div>
-                <div style={{ fontSize: '12px', color: '#8b949e', marginTop: '2px' }}>
-                  Requests are verified and dispatched via Garena Topup voucher PINs.
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                  Redemptions process between the 5th and 10th of every month. Points never expire!
                 </div>
               </div>
-              <span style={{ fontSize: '24px' }}>{isRedemptionWindowOpen ? '🔓' : '🔒'}</span>
+              <span style={{ fontSize: '20px' }}>{isRedemptionWindowOpen ? '🔓' : '🔒'}</span>
             </div>
 
-            <form onSubmit={handleRedeem}>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px' }}>
-                  Select Diamond Voucher Amount:
-                </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  {[
-                    { diamonds: 60, cost: 1000 },
-                    { diamonds: 120, cost: 2000 },
-                    { diamonds: 310, cost: 5000 },
-                    { diamonds: 520, cost: 8000 }
-                  ].map((tier) => (
-                    <div
-                      key={tier.diamonds}
-                      onClick={() => setDiamondChoice(tier.diamonds)}
-                      style={{
-                        padding: '12px',
-                        borderRadius: '10px',
-                        border: diamondChoice === tier.diamonds ? '2px solid #00E5FF' : '1px solid #30363d',
-                        backgroundColor: diamondChoice === tier.diamonds ? 'rgba(0, 229, 255, 0.1)' : '#0d1117',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <div style={{ fontWeight: '800', color: '#00E5FF', fontSize: '15px' }}>{tier.diamonds} Diamonds 💎</div>
-                      <div style={{ fontSize: '12px', color: '#8b949e', marginTop: '4px' }}>Cost: {tier.cost.toLocaleString()} Points</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {/* Redemption Form */}
+            <div style={{ backgroundColor: '#121721', border: '1px solid #232c3d', borderRadius: '14px', padding: '18px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '800', margin: '0 0 12px 0' }}>💎 Redeem Free Fire Diamonds</h3>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px' }}>
-                  Your Free Fire Player ID (UID):
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 104829104"
-                  value={playerId}
-                  onChange={(e) => setPlayerId(e.target.value)}
+              <form onSubmit={handleRedeem}>
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '8px' }}>
+                    Select Voucher Package:
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    {[
+                      { diamonds: 60, cost: 1000 },
+                      { diamonds: 120, cost: 2000 },
+                      { diamonds: 310, cost: 5000 },
+                      { diamonds: 520, cost: 8000 }
+                    ].map((tier) => (
+                      <div
+                        key={tier.diamonds}
+                        onClick={() => setDiamondChoice(tier.diamonds)}
+                        style={{
+                          padding: '10px',
+                          borderRadius: '8px',
+                          border: diamondChoice === tier.diamonds ? '2px solid #00E5FF' : '1px solid #283446',
+                          backgroundColor: diamondChoice === tier.diamonds ? 'rgba(0, 229, 255, 0.1)' : '#18202c',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{ fontWeight: '800', color: '#00E5FF', fontSize: '14px' }}>{tier.diamonds} Diamonds 💎</div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>{tier.cost.toLocaleString()} Points</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', marginBottom: '6px' }}>
+                    Player UID (Game ID):
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter 8-10 digit Player ID"
+                    value={playerId}
+                    onChange={(e) => setPlayerId(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #283446',
+                      backgroundColor: '#0a0d14',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                {redemptionError && (
+                  <div style={{ padding: '8px 12px', borderRadius: '6px', backgroundColor: 'rgba(248, 81, 73, 0.15)', color: '#f85149', fontSize: '12px', marginBottom: '12px' }}>
+                    {redemptionError}
+                  </div>
+                )}
+
+                {redemptionSuccess && (
+                  <div style={{ padding: '8px 12px', borderRadius: '6px', backgroundColor: 'rgba(63, 185, 80, 0.15)', color: '#3fb950', fontSize: '12px', marginBottom: '12px' }}>
+                    {redemptionSuccess}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
                   style={{
                     width: '100%',
-                    padding: '12px 14px',
+                    padding: '12px',
                     borderRadius: '8px',
-                    border: '1px solid #30363d',
-                    backgroundColor: '#0d1117',
-                    color: '#ffffff',
+                    backgroundColor: '#00E5FF',
+                    color: '#0a0d14',
+                    fontWeight: '800',
                     fontSize: '14px',
-                    boxSizing: 'border-box'
+                    border: 'none',
+                    cursor: 'pointer'
                   }}
-                />
+                >
+                  Submit Redemption Request
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* 5. PROFILE TAB */}
+        {activeTab === 'profile' && (
+          <div>
+            <div style={{
+              backgroundColor: '#121721',
+              border: '1px solid #232c3d',
+              borderRadius: '16px',
+              padding: '20px',
+              marginBottom: '16px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #FFD700, #FF6D00)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '26px'
+                }}>
+                  👤
+                </div>
+                <div>
+                  <div style={{ fontWeight: '800', fontSize: '18px' }}>Admin Shafihu</div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8' }}>shafihu394366@gmail.com</div>
+                  <span style={{
+                    display: 'inline-block',
+                    backgroundColor: 'rgba(255, 87, 34, 0.2)',
+                    color: '#ff7043',
+                    fontSize: '10px',
+                    fontWeight: '800',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    marginTop: '4px'
+                  }}>
+                    ADMINISTRATOR
+                  </span>
+                </div>
               </div>
 
-              {redemptionError && (
-                <div style={{ padding: '10px 14px', borderRadius: '8px', backgroundColor: 'rgba(248, 81, 73, 0.15)', color: '#f85149', fontSize: '13px', marginBottom: '16px' }}>
-                  {redemptionError}
+              {/* Referral Box */}
+              <div style={{
+                backgroundColor: '#18202c',
+                border: '1px dashed #FFD700',
+                borderRadius: '10px',
+                padding: '12px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px'
+              }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>Your Referral Code (+100 Pts):</div>
+                  <div style={{ fontWeight: '900', color: '#FFD700', fontSize: '16px', letterSpacing: '1px' }}>QB-ADM777</div>
                 </div>
-              )}
+                <button
+                  onClick={copyReferralCode}
+                  style={{
+                    backgroundColor: '#FFD700',
+                    color: '#0a0d14',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 12px',
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {copiedCode ? "Copied! ✅" : "Copy Code"}
+                </button>
+              </div>
 
-              {redemptionSuccess && (
-                <div style={{ padding: '10px 14px', borderRadius: '8px', backgroundColor: 'rgba(63, 185, 80, 0.15)', color: '#3fb950', fontSize: '13px', marginBottom: '16px' }}>
-                  {redemptionSuccess}
-                </div>
-              )}
-
+              {/* Admin Panel button */}
               <button
-                type="submit"
+                onClick={() => setShowAdminModal(true)}
                 style={{
                   width: '100%',
-                  padding: '14px',
+                  padding: '12px',
                   borderRadius: '10px',
-                  backgroundColor: '#00E5FF',
-                  color: '#0d1117',
+                  backgroundColor: 'rgba(255, 87, 34, 0.15)',
+                  border: '1px solid #ff5722',
+                  color: '#ff7043',
                   fontWeight: '800',
-                  fontSize: '15px',
-                  border: 'none',
-                  cursor: 'pointer'
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
               >
-                Submit Diamond Redemption Request
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* TAB: INVITE */}
-        {activeTab === 'invite' && (
-          <div style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-            <span style={{ fontSize: '42px' }}>🎁</span>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', margin: '12px 0 6px 0' }}>Invite Friends & Earn Points</h2>
-            <p style={{ color: '#8b949e', fontSize: '13px', maxWidth: '480px', margin: '0 auto 20px auto' }}>
-              Give friends 100 points when they sign up, and earn 100 points as soon as their account is verified!
-            </p>
-
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '12px',
-              backgroundColor: '#0d1117',
-              border: '1px dashed #FFD700',
-              borderRadius: '12px',
-              padding: '12px 24px',
-              marginBottom: '20px'
-            }}>
-              <span style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '2px', color: '#FFD700' }}>QB-ADM777</span>
-              <button
-                onClick={copyReferralCode}
-                style={{
-                  backgroundColor: '#FFD700',
-                  color: '#0d1117',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '6px 14px',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  cursor: 'pointer'
-                }}
-              >
-                {copiedCode ? "Copied! ✅" : "Copy Code"}
+                <span>🛡️</span> Open Admin Dashboard
               </button>
             </div>
           </div>
         )}
 
-        {/* TAB: ADMIN */}
-        {activeTab === 'admin' && (
-          <div style={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '16px', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#f85149', margin: 0 }}>🛡️ Admin Management Dashboard</h2>
-              <span style={{ backgroundColor: 'rgba(248, 81, 73, 0.2)', color: '#f85149', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '10px' }}>
-                ADMIN ROLE
-              </span>
-            </div>
-
-            <div style={{ backgroundColor: '#0d1117', border: '1px solid #30363d', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
-              <div style={{ fontSize: '12px', color: '#8b949e' }}>Admin Account:</div>
-              <div style={{ fontSize: '14px', fontWeight: '700', color: '#ffffff', marginTop: '2px' }}>shafihu394366@gmail.com</div>
-            </div>
-
-            <h3 style={{ fontSize: '14px', color: '#8b949e', textTransform: 'uppercase', margin: '20px 0 10px 0' }}>
-              Sample Pending Redemptions Queue
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {[
-                { id: "REQ-FF-882194", user: "gamer_boy_99", player: "294819024", diamonds: 60, status: "PENDING" },
-                { id: "REQ-FF-491024", user: "priya_sharma", player: "481920381", diamonds: 120, status: "PENDING" }
-              ].map((req) => (
-                <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: '#0d1117', borderRadius: '8px', border: '1px solid #21262d' }}>
-                  <div>
-                    <div style={{ fontWeight: '700', fontSize: '13px' }}>{req.id} • {req.diamonds} Diamonds</div>
-                    <div style={{ fontSize: '11px', color: '#8b949e' }}>Player UID: {req.player} ({req.user})</div>
-                  </div>
-                  <button
-                    onClick={() => alert(`Voucher for ${req.diamonds} Diamonds processed!`)}
-                    style={{
-                      backgroundColor: '#238636',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Approve & Issue Voucher
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </main>
 
-      {/* Footer */}
-      <footer style={{
-        backgroundColor: '#161b22',
-        borderTop: '1px solid #21262d',
-        padding: '16px 20px',
-        textAlign: 'center',
-        fontSize: '12px',
-        color: '#8b949e'
+      {/* 5 BOTTOM NAVIGATION TABS matching the Android App */}
+      <nav style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#121721',
+        borderTop: '1px solid #232c3d',
+        display: 'flex',
+        justifyContent: 'space-around',
+        padding: '8px 4px',
+        zIndex: 100,
+        boxShadow: '0 -4px 16px rgba(0,0,0,0.4)'
       }}>
-        Quiz Rewards Official Applet • Android & Web Edition • Connected to Firebase Project <code>quizrewards-ace9b</code>
-      </footer>
+        {[
+          { key: 'home', label: 'Home', icon: '🏠' },
+          { key: 'quiz', label: 'Quiz', icon: '❓' },
+          { key: 'earn', label: 'Earn', icon: '🎁' },
+          { key: 'wallet', label: 'Wallet', icon: '💰' },
+          { key: 'profile', label: 'Profile', icon: '👤' }
+        ].map((item) => {
+          const isSelected = activeTab === item.key;
+          return (
+            <button
+              key={item.key}
+              onClick={() => setActiveTab(item.key)}
+              style={{
+                flex: 1,
+                maxWidth: '90px',
+                background: 'none',
+                border: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                cursor: 'pointer',
+                padding: '4px 0',
+                color: isSelected ? '#FFD700' : '#94a3b8',
+                transition: 'color 0.15s ease'
+              }}
+            >
+              <span style={{ fontSize: '18px' }}>{item.icon}</span>
+              <span style={{ fontSize: '11px', fontWeight: isSelected ? '800' : '500' }}>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Admin Modal */}
+      {showAdminModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.75)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 200,
+          padding: '16px'
+        }}>
+          <div style={{
+            maxWidth: '500px',
+            width: '100%',
+            backgroundColor: '#121721',
+            border: '1px solid #ff5722',
+            borderRadius: '16px',
+            padding: '20px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ margin: 0, color: '#ff7043' }}>🛡️ Admin Quick Control</h3>
+              <button
+                onClick={() => setShowAdminModal(false)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '18px', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+            <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 14px 0' }}>
+              Logged in as: <strong>shafihu394366@gmail.com</strong>
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ padding: '10px', backgroundColor: '#18202c', borderRadius: '8px', fontSize: '12px' }}>
+                <strong>REQ-FF-882194</strong>: 60 Diamonds for Player ID 294819024 (PENDING)
+              </div>
+              <div style={{ padding: '10px', backgroundColor: '#18202c', borderRadius: '8px', fontSize: '12px' }}>
+                <strong>REQ-FF-491024</strong>: 120 Diamonds for Player ID 481920381 (PENDING)
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAdminModal(false)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '8px',
+                backgroundColor: '#283446',
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: '700',
+                marginTop: '16px',
+                cursor: 'pointer'
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
