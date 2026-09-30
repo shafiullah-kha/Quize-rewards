@@ -1,0 +1,6 @@
+{
+  "name": "Quiz Rewards",
+  "description": "Play quizzes, watch rewarded ads, earn points, and submit reward redemptions with real-time wallet tracking and an admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

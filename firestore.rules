@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "shafihu394366@gmail.com" ||
+        request.auth.token.role == "admin"
+      );
+    }
+    
+    // User profile: Users can read their own profile or public stats, only admin can update points directly.
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isAdmin() || (
+        isOwner(userId) && 
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['points', 'role', 'status'])
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Worldwide Quiz Questions: Read-only for authenticated users, write for admin only
+    match /questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    match /quizzes/{quizId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Quiz attempts tracking
+    match /quizAttempts/{attemptId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Anti-abuse: Track answered questions per user to prevent duplicate claiming
+    match /answeredQuestions/{userQuestionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+    
+    // Rewards catalogue: Any authenticated user can read enabled rewards
+    match /rewards/{rewardId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Ad Rewards audit
+    match /adRewards/{transactionId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Transactions: Read-only for owner, immutable except by admin
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Redemption Requests: Users can create pending requests (min 1000 points = 60 diamonds)
+    match /redemptionRequests/{requestId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == "PENDING" &&
+        request.resource.data.points >= 1000;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // System Config: Read-only for authenticated, write for admin only
+    match /config/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Welcome Bonus idempotency audit: one per user UID
+    match /welcomeRewards/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Referrals: visible to referrer or referred user, create by authenticated new user
+    match /referrals/{referralId} {
+      allow read: if isAuthenticated() && (
+        resource.data.referrerUserId == request.auth.uid ||
+        resource.data.referredUserId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.referredUserId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Daily spin tracking: userId_YYYY_MM_DD
+    match /spinDaily/{dailyId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create, update: if isAuthenticated() && (
+        request.resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Spin Transactions: audit of every wheel spin
+    match /spinTransactions/{spinTransactionId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Public leaderboard cache
+    match /leaderboard/{period} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}
